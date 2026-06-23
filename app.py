@@ -110,8 +110,12 @@ def process_message(
     # Step 2 — mock model response
     agent_reply = mock_response(message)
 
-    # Step 3 — build chat history (tuples format: [user, assistant])
-    history = list(history) + [[message, agent_reply]]
+    # Step 3 — build chat history
+    # HF Space (Gradio 5.x) requires messages format: {"role":..., "content":...}
+    history = list(history) + [
+        {"role": "user",      "content": message},
+        {"role": "assistant", "content": agent_reply},
+    ]
 
     # Step 4 — if signal detected, generate rule proposal
     proposal_md   = ""
@@ -285,11 +289,16 @@ Melusina zaproponuje dodanie reguły do Twojej konstytucji.
     with gr.Row():
         # ── Left column: chat + proposal ───────────────────────────────────
         with gr.Column(scale=3):
-            chatbot = gr.Chatbot(
-                label="Melusina",
-                height=380,
-                show_label=True,
-            )
+            # type="messages" required for Gradio 5.x (HF default)
+            # Gradio 6.x uses tuples by default but accepts messages too
+            _chatbot_kwargs = {"label": "Melusina", "height": 380, "show_label": True}
+            try:
+                import inspect
+                if "type" in inspect.signature(gr.Chatbot.__init__).parameters:
+                    _chatbot_kwargs["type"] = "messages"
+            except Exception:
+                pass
+            chatbot = gr.Chatbot(**_chatbot_kwargs)
 
             with gr.Row():
                 msg_input = gr.Textbox(
