@@ -110,11 +110,8 @@ def process_message(
     # Step 2 — mock model response
     agent_reply = mock_response(message)
 
-    # Step 3 — build chat history (Gradio 6 messages format)
-    history = list(history) + [
-        {"role": "user",      "content": message},
-        {"role": "assistant", "content": agent_reply},
-    ]
+    # Step 3 — build chat history (tuples format: [user, assistant])
+    history = list(history) + [[message, agent_reply]]
 
     # Step 4 — if signal detected, generate rule proposal
     proposal_md   = ""
@@ -290,7 +287,6 @@ Melusina zaproponuje dodanie reguły do Twojej konstytucji.
         with gr.Column(scale=3):
             chatbot = gr.Chatbot(
                 label="Melusina",
-                type="messages",
                 height=380,
                 show_label=True,
             )
