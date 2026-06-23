@@ -136,7 +136,7 @@ def process_message(
             f"---\n"
             f"{format_rule_proposal(rule_d)}"
         )
-        proposal_json = rule_d
+        proposal_json = json.dumps(rule_d, ensure_ascii=False)  # string for Textbox
         show_buttons  = True
 
         audit_entry = {
@@ -148,6 +148,7 @@ def process_message(
             "message":   message[:60] + ("…" if len(message) > 60 else ""),
         }
     else:
+        proposal_json = ""
         _pending_rule = None
         audit_entry = {
             "audit_id":  audit_id,
@@ -175,7 +176,7 @@ def add_rule(audit_history: list[dict]):
     """User clicked 'Dodaj regułę'."""
     global _pending_rule
     if _pending_rule is None:
-        return audit_history, "*(brak oczekującej reguły)*", "", {}, gr.update(visible=False), gr.update(visible=False), load_constitution()
+        return audit_history, "*(brak oczekującej reguły)*", "", "", gr.update(visible=False), gr.update(visible=False), load_constitution()
 
     extractor.writer.append_dict(_pending_rule)
     key = _pending_rule.get("key", "?")
@@ -191,7 +192,7 @@ def add_rule(audit_history: list[dict]):
         audit_history,
         f"✅ Reguła **{key}** dodana do constitution.jfp",
         "",
-        {},
+        "",
         gr.update(visible=False),
         gr.update(visible=False),
         load_constitution(),
@@ -212,7 +213,7 @@ def reject_rule(audit_history: list[dict]):
         audit_history,
         "↩ Reguła odrzucona.",
         "",
-        {},
+        "",
         gr.update(visible=False),
         gr.update(visible=False),
         load_constitution(),
@@ -302,8 +303,10 @@ Melusina zaproponuje dodanie reguły do Twojej konstytucji.
             # ── Rule proposal box ─────────────────────────────────────────
             with gr.Group(elem_id="proposal-box"):
                 gr.Markdown("#### 💡 Propozycja reguły")
-                proposal_md = gr.Markdown("*Brak wykrytego sygnału uczenia.*")
-                proposal_json = gr.JSON(label="JFP Rule JSON", visible=False)
+                proposal_md   = gr.Markdown("*Brak wykrytego sygnału uczenia.*")
+                # proposal_json used only as hidden state — rendered as Textbox
+                # to avoid Gradio 6 bug where JSON(visible=False) shows "Błąd"
+                proposal_json = gr.Textbox(visible=False, label="json_state")
 
                 with gr.Row():
                     btn_add    = gr.Button("✅ Dodaj regułę",  elem_classes="btn-add",    visible=False, scale=1)

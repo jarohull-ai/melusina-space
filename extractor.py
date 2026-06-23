@@ -71,9 +71,33 @@ _PATTERNS: list[tuple[re.Pattern, SignalType, Section, RuleClass]] = [
     ), SignalType.EXPLICIT, Section.PRIORITIES, RuleClass.BETA),
 
     # ── DOMAIN / GAMMA — terminology corrections ──────────────────────────────
+
+    # "nie mów X, mówimy Y" / "nie nazywaj X, to jest Y" / "zamiast X używaj Y"
+    # Must come BEFORE the generic IMPLICIT "nie mów" pattern so it takes priority.
+    (re.compile(
+        r"\bnie\s+mów\b.{1,60}\b(mówimy|mówi\s+się|powiemy|powiedz)\b",
+        re.IGNORECASE
+    ), SignalType.DOMAIN, Section.DOMAIN_KNOWLEDGE, RuleClass.GAMMA),
+
+    (re.compile(
+        r"\bnie\s+nazywaj\b.{1,60}\b(to\s+jest|to\s+się\s+nazywa|nazywa\s+się)\b",
+        re.IGNORECASE
+    ), SignalType.DOMAIN, Section.DOMAIN_KNOWLEDGE, RuleClass.GAMMA),
+
+    (re.compile(
+        r"\bzamiast\b.{1,60}\b(używaj|użyj|stosuj|mów|pisz)\b",
+        re.IGNORECASE
+    ), SignalType.DOMAIN, Section.DOMAIN_KNOWLEDGE, RuleClass.GAMMA),
+
+    (re.compile(
+        r"\bprzestań\s+(mówić|pisać|używać)\b.{1,60}\b(chodzi\s+o|mam\s+na\s+myśli|to\s+jest)\b",
+        re.IGNORECASE
+    ), SignalType.DOMAIN, Section.DOMAIN_KNOWLEDGE, RuleClass.GAMMA),
+
+    # Generic domain patterns
     (re.compile(
         r"\b(to się nazywa|nazywamy to|nasz termin to|we call it|the term is"
-        r"|nie mów[\"' ]+\w|don't (say|call it)|it's called)\b",
+        r"|don't (say|call it)|it's called)\b",
         re.IGNORECASE
     ), SignalType.DOMAIN, Section.DOMAIN_KNOWLEDGE, RuleClass.GAMMA),
 
