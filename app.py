@@ -301,8 +301,9 @@ Melusina zaproponuje dodanie reguły do Twojej konstytucji.
 
             # ── Rule proposal box ─────────────────────────────────────────
             with gr.Group(elem_id="proposal-box"):
-                proposal_md = gr.Markdown("*Brak wykrytego sygnału uczenia.*", label="Propozycja reguły")
-                proposal_json = gr.JSON(visible=False)
+                gr.Markdown("#### 💡 Propozycja reguły")
+                proposal_md = gr.Markdown("*Brak wykrytego sygnału uczenia.*")
+                proposal_json = gr.JSON(label="JFP Rule JSON", visible=False)
 
                 with gr.Row():
                     btn_add    = gr.Button("✅ Dodaj regułę",  elem_classes="btn-add",    visible=False, scale=1)
@@ -322,6 +323,7 @@ Melusina zaproponuje dodanie reguły do Twojej konstytucji.
                 audit_md = gr.Markdown("*(brak historii)*")
 
     # ── Examples ───────────────────────────────────────────────────────────
+    gr.Markdown("#### 📝 Przykłady — kliknij aby wpisać")
     gr.Examples(
         examples=[
             ["od teraz zawsze odpowiadaj po polsku"],
@@ -333,7 +335,6 @@ Melusina zaproponuje dodanie reguły do Twojej konstytucji.
             ["Opowiedz mi o VIKI"],
         ],
         inputs=msg_input,
-        label="Przykłady",
     )
 
     # ── Footer ─────────────────────────────────────────────────────────────
