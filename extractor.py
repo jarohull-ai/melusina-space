@@ -94,10 +94,36 @@ _PATTERNS: list[tuple[re.Pattern, SignalType, Section, RuleClass]] = [
         re.IGNORECASE
     ), SignalType.DOMAIN, Section.DOMAIN_KNOWLEDGE, RuleClass.GAMMA),
 
-    # Generic domain patterns
+    # ── DOMAIN / GAMMA — English terminology patterns ─────────────────────────
+
+    # "don't say X, we say/call it Y" — must come before generic IMPLICIT
+    (re.compile(
+        r"\bdon'?t\s+say\b.{1,60}\b(we\s+say|we\s+call\s+it|we\s+use|use)\b",
+        re.IGNORECASE
+    ), SignalType.DOMAIN, Section.DOMAIN_KNOWLEDGE, RuleClass.GAMMA),
+
+    # "instead of X use/say Y"
+    (re.compile(
+        r"\binstead\s+of\b.{1,60}\b(use|say|write|call\s+it)\b",
+        re.IGNORECASE
+    ), SignalType.DOMAIN, Section.DOMAIN_KNOWLEDGE, RuleClass.GAMMA),
+
+    # "stop saying/using X, I mean Y"
+    (re.compile(
+        r"\bstop\s+(saying|using|calling\s+it)\b.{1,60}\b(I\s+mean|it'?s\s+called|the\s+term\s+is)\b",
+        re.IGNORECASE
+    ), SignalType.DOMAIN, Section.DOMAIN_KNOWLEDGE, RuleClass.GAMMA),
+
+    # "don't call it X, it's Y" / "don't refer to it as X"
+    (re.compile(
+        r"\bdon'?t\s+(call\s+it|refer\s+to\s+it\s+as)\b.{1,60}\b(it'?s|the\s+correct\s+term|use)\b",
+        re.IGNORECASE
+    ), SignalType.DOMAIN, Section.DOMAIN_KNOWLEDGE, RuleClass.GAMMA),
+
+    # Generic domain patterns (PL + EN)
     (re.compile(
         r"\b(to się nazywa|nazywamy to|nasz termin to|we call it|the term is"
-        r"|don't (say|call it)|it's called)\b",
+        r"|it'?s called)\b",
         re.IGNORECASE
     ), SignalType.DOMAIN, Section.DOMAIN_KNOWLEDGE, RuleClass.GAMMA),
 
@@ -194,7 +220,9 @@ class RuleGenerator:
             r"\b(zawsze|always)\b[,\s]*",
             r"\b(nigdy|never)\b[,\s]*",
             r"\b(pamiętaj że|pamiętaj,?\s*że|remember that|remember:)\s*",
-            r"\b(to się nazywa|nazywamy to|nasz termin to|we call it|the term is)\s*",
+            r"\b(to się nazywa|nazywamy to|nasz termin to|we call it|the term is|it'?s called)\s*",
+            r"\b(instead of|zamiast)\b[,\s]*",
+            r"\b(don'?t say|nie mów)\b[,\s]*",
             r"^(nie[,\s]+|wrong[,:\s]+|błąd[,:\s]+|popraw[,:\s]+|actually[,:\s]+)",
         ]
         value = message.strip()

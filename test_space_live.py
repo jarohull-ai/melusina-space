@@ -28,14 +28,14 @@ def call(msg):
     return None
 
 TESTS = [
-    ('Zwykla wiadomosc (NO_RULE)',   'Czym jest JFP?',                              'NO_RULE'),
-    ('EXPLICIT zawsze',              'od teraz zawsze odpowiadaj po polsku',         'EXPLICIT'),
-    ('EXPLICIT nigdy',               'nigdy nie uzywaj emoji w odpowiedziach',       'EXPLICIT'),
-    ('EXPLICIT pamietaj',            'pamietaj ze nasz projekt nazywa sie VIKI',     'EXPLICIT'),
-    ('DOMAIN to sie nazywa',         'to sie nazywa LoRA nie LORA',                  'DOMAIN'),
-    ('DOMAIN nie mow...mowimy',      "nie mow fine-tuning mowimy dostrajanie",       'DOMAIN'),
-    ('DOMAIN zamiast...uzywaj',      'zamiast LLM uzywaj model jezykowy',            'DOMAIN'),
-    ('IMPLICIT korekta',             'wrong, nie uzywaj tabelek',                    'IMPLICIT'),
+    ('Zwykla wiadomosc (NO_RULE)',   'Czym jest JFP?',                                        'NO_RULE'),
+    ('EXPLICIT zawsze',              'od teraz zawsze odpowiadaj po polsku',                   'EXPLICIT'),
+    ('EXPLICIT nigdy',               'nigdy nie używaj emoji w odpowiedziach',                 'EXPLICIT'),
+    ('EXPLICIT pamiętaj',            'pamiętaj że nasz projekt nazywa się VIKI',               'EXPLICIT'),
+    ('DOMAIN to się nazywa',         'to się nazywa LoRA nie LORA',                            'DOMAIN'),
+    ('DOMAIN nie mów...mówimy',      "nie mów 'fine-tuning', mówimy 'dostrajanie'",            'DOMAIN'),
+    ('DOMAIN zamiast...używaj',      'zamiast LLM używaj model językowy',                      'DOMAIN'),
+    ('IMPLICIT korekta',             'wrong, nie używaj tabelek',                              'IMPLICIT'),
 ]
 
 print('=' * 62)

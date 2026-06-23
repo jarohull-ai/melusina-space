@@ -24,13 +24,23 @@ CONSTITUTION_PATH.parent.mkdir(parents=True, exist_ok=True)
 # ── Extractor (no interactive confirm — we handle it in UI) ───────────────────
 extractor = Extractor(constitution_path=CONSTITUTION_PATH)
 
-# ── Mock model responses ──────────────────────────────────────────────────────
+# ── Mock model responses (EN/PL) ──────────────────────────────────────────────
 MOCK_RESPONSES = {
-    "default": "Rozumiem. Jestem JFP-Core-v1 — deterministyczny agent AI. Jak mogę pomóc?",
-    "hello":   "Witaj! Jestem Melusina — asystent oparty na Jaro Flash Protocol v16E.0.0.",
-    "jfp":     "JFP (Jaro Flash Protocol) to protokół zarządzania zachowaniem agentów AI. Wersja v16E.0.0.",
-    "lora":    "LoRA (Low-Rank Adaptation) to technika fine-tuningu modeli językowych z minimalną liczbą parametrów.",
-    "viki":    "VIKI to ekosystem agentów AI oparty na JFP, rozwijany przez Jarosława Kuchtę.",
+    "jfp":       "JFP (Jaro Flash Protocol) is a deterministic behavioral governance protocol for AI agents. "
+                 "Current version: v16E.0.0. / "
+                 "JFP to deterministyczny protokół zarządzania zachowaniem agentów AI. Wersja v16E.0.0.",
+    "melusina":  "MELUSINA is the constitutional AI layer of the JFP ecosystem — "
+                 "it extracts behavioral rules from user messages and enforces them via the BC engine. / "
+                 "MELUSINA to warstwa konstytucyjna ekosystemu JFP.",
+    "lora":      "LoRA (Low-Rank Adaptation) is a parameter-efficient fine-tuning technique for LLMs. / "
+                 "LoRA to technika efektywnego dostrajania modeli językowych.",
+    "viki":      "VIKI is the multi-agent AI ecosystem built on JFP, developed by Jarosław Kuchta. / "
+                 "VIKI to ekosystem agentów AI oparty na JFP.",
+    "hello":     "Hello! I am Melusina — a JFP-governed constitutional AI assistant. How can I help? / "
+                 "Witaj! Jestem Melusina — asystent AI oparty na JFP.",
+    "default":   "Understood. I am JFP-Core-v1 — a deterministic AI engine. "
+                 "I never confabulate: unknown = SIGNAL_UNKNOWN. / "
+                 "Rozumiem. Jestem JFP-Core-v1 — deterministyczny agent AI.",
 }
 
 def mock_response(message: str) -> str:
@@ -51,10 +61,10 @@ def now_iso() -> str:
 
 def load_constitution() -> str:
     if not CONSTITUTION_PATH.exists():
-        return "*(brak reguł — constitution.jfp jest pusta)*"
+        return "*(No rules yet — constitution.jfp is empty)*"
     lines = CONSTITUTION_PATH.read_text(encoding="utf-8").strip().splitlines()
     if not lines:
-        return "*(brak reguł — constitution.jfp jest pusta)*"
+        return "*(No rules yet — constitution.jfp is empty)*"
     out = []
     for line in lines:
         try:
@@ -70,14 +80,22 @@ def load_constitution() -> str:
     return "\n\n".join(out)
 
 def format_rule_proposal(rule_dict: dict) -> str:
-    cls_label = {"ALPHA": "🔴 ALPHA (twarda reguła)", "BETA": "🟡 BETA (silna preferencja)", "GAMMA": "🟢 GAMMA (wiedza domenowa)"}.get(rule_dict.get("class",""), rule_dict.get("class",""))
-    src_label = {"explicit": "📢 EXPLICIT", "implicit": "↩ IMPLICIT", "domain": "📚 DOMAIN"}.get(rule_dict.get("source",""), rule_dict.get("source",""))
+    cls_label = {
+        "ALPHA": "🔴 ALPHA — hard constraint / twarda reguła",
+        "BETA":  "🟡 BETA — strong preference / silna preferencja",
+        "GAMMA": "🟢 GAMMA — domain knowledge / wiedza domenowa",
+    }.get(rule_dict.get("class", ""), rule_dict.get("class", ""))
+    src_label = {
+        "explicit": "📢 EXPLICIT",
+        "implicit": "↩ IMPLICIT",
+        "domain":   "📚 DOMAIN",
+    }.get(rule_dict.get("source", ""), rule_dict.get("source", ""))
     return (
-        f"**Sekcja:** `{rule_dict.get('section','')}`\n"
-        f"**Klucz:** `{rule_dict.get('key','')}`\n"
-        f"**Klasa:** {cls_label}\n"
-        f"**Źródło:** {src_label}\n"
-        f"**Treść:** {rule_dict.get('value','')}"
+        f"**Section / Sekcja:** `{rule_dict.get('section', '')}`\n"
+        f"**Key / Klucz:** `{rule_dict.get('key', '')}`\n"
+        f"**Class / Klasa:** {cls_label}\n"
+        f"**Source / Źródło:** {src_label}\n"
+        f"**Value / Treść:** {rule_dict.get('value', '')}"
     )
 
 # ── State ─────────────────────────────────────────────────────────────────────
@@ -99,7 +117,7 @@ def process_message(
     global _pending_rule
 
     if not message.strip():
-        return history, audit_history, "", {}, False, False, load_constitution()
+        return history, audit_history, "", "", False, False, load_constitution()
 
     audit_id  = make_audit_id()
     timestamp = now_iso()
@@ -135,8 +153,8 @@ def process_message(
         }.get(signal.signal_type, str(signal.signal_type))
 
         proposal_md = (
-            f"### Wykryto sygnał uczenia: {sig_label}\n"
-            f"**Dopasowanie:** `{signal.matched_pattern}`\n\n"
+            f"### Learning signal detected / Wykryto sygnał: {sig_label}\n"
+            f"**Match / Dopasowanie:** `{signal.matched_pattern}`\n\n"
             f"---\n"
             f"{format_rule_proposal(rule_d)}"
         )
@@ -180,7 +198,7 @@ def add_rule(audit_history: list[dict]):
     """User clicked 'Dodaj regułę'."""
     global _pending_rule
     if _pending_rule is None:
-        return audit_history, "*(brak oczekującej reguły)*", "", "", gr.update(visible=False), gr.update(visible=False), load_constitution()
+        return audit_history, "*(No pending rule / Brak oczekującej reguły)*", "", "", gr.update(visible=False), gr.update(visible=False), load_constitution()
 
     extractor.writer.append_dict(_pending_rule)
     key = _pending_rule.get("key", "?")
@@ -194,7 +212,7 @@ def add_rule(audit_history: list[dict]):
     _pending_rule = None
     return (
         audit_history,
-        f"✅ Reguła **{key}** dodana do constitution.jfp",
+        f"✅ Rule **{key}** added to constitution.jfp / Reguła dodana",
         "",
         "",
         gr.update(visible=False),
@@ -215,7 +233,7 @@ def reject_rule(audit_history: list[dict]):
 
     return (
         audit_history,
-        "↩ Reguła odrzucona.",
+        "↩ Rule rejected / Reguła odrzucona.",
         "",
         "",
         gr.update(visible=False),
@@ -226,7 +244,7 @@ def reject_rule(audit_history: list[dict]):
 
 def format_audit_table(audit_history: list[dict]) -> str:
     if not audit_history:
-        return "*(brak historii)*"
+        return "*(No history yet / Brak historii)*"
     rows = []
     for e in reversed(audit_history[-10:]):  # last 10, newest first
         status_icon = {
@@ -279,22 +297,23 @@ with gr.Blocks(title="Melusina — JFP Constitutional AI Demo") as demo:
     gr.Markdown(
         """
 # 🧠 Melusina — JFP Constitutional AI
-**Jaro Flash Protocol v16E.0.0** · BC Extractor Demo
+**Jaro Flash Protocol v16E.0.0** · Behavioral Constitution Extractor
 
-Wpisz wiadomość. Jeśli zawiera sygnał uczenia (`od teraz`, `nigdy`, `pamiętaj że`, `to się nazywa`…),
-Melusina zaproponuje dodanie reguły do Twojej konstytucji.
+Type a message. If it contains a learning signal (`from now on`, `always`, `never`, `remember that`,
+`don't say X we say Y`, `instead of X use Y` — or Polish equivalents),
+Melusina will propose adding a rule to your personal constitution.
+
+*Wpisz wiadomość. Jeśli zawiera sygnał uczenia, Melusina zaproponuje regułę do konstytucji.*
         """
     )
 
     with gr.Row():
         # ── Left column: chat + proposal ───────────────────────────────────
         with gr.Column(scale=3):
-            # type="messages" required for Gradio 5.x (HF default)
-            # Gradio 6.x uses tuples by default but accepts messages too
             _chatbot_kwargs = {"label": "Melusina", "height": 380, "show_label": True}
             try:
-                import inspect
-                if "type" in inspect.signature(gr.Chatbot.__init__).parameters:
+                import inspect as _inspect
+                if "type" in _inspect.signature(gr.Chatbot.__init__).parameters:
                     _chatbot_kwargs["type"] = "messages"
             except Exception:
                 pass
@@ -302,24 +321,22 @@ Melusina zaproponuje dodanie reguły do Twojej konstytucji.
 
             with gr.Row():
                 msg_input = gr.Textbox(
-                    placeholder="Wpisz wiadomość… (np. 'od teraz zawsze odpowiadaj po polsku')",
-                    label="Twoja wiadomość",
+                    placeholder="Type your message… e.g. 'from now on always respond in English'",
+                    label="Your message / Twoja wiadomość",
                     scale=5,
                     lines=1,
                 )
-                send_btn = gr.Button("Wyślij", variant="primary", scale=1)
+                send_btn = gr.Button("Send / Wyślij", variant="primary", scale=1)
 
             # ── Rule proposal box ─────────────────────────────────────────
             with gr.Group(elem_id="proposal-box"):
-                gr.Markdown("#### 💡 Propozycja reguły")
-                proposal_md   = gr.Markdown("*Brak wykrytego sygnału uczenia.*")
-                # proposal_json used only as hidden state — rendered as Textbox
-                # to avoid Gradio 6 bug where JSON(visible=False) shows "Błąd"
+                gr.Markdown("#### 💡 Rule Proposal / Propozycja reguły")
+                proposal_md   = gr.Markdown("*No learning signal detected. / Brak wykrytego sygnału uczenia.*")
                 proposal_json = gr.Textbox(visible=False, label="json_state")
 
                 with gr.Row():
-                    btn_add    = gr.Button("✅ Dodaj regułę",  elem_classes="btn-add",    visible=False, scale=1)
-                    btn_reject = gr.Button("❌ Odrzuć",        elem_classes="btn-reject",  visible=False, scale=1)
+                    btn_add    = gr.Button("✅ Add rule / Dodaj regułę",  elem_classes="btn-add",    visible=False, scale=1)
+                    btn_reject = gr.Button("❌ Reject / Odrzuć",          elem_classes="btn-reject",  visible=False, scale=1)
 
             status_msg = gr.Markdown("")
 
@@ -328,30 +345,36 @@ Melusina zaproponuje dodanie reguły do Twojej konstytucji.
             with gr.Group(elem_id="constitution-box"):
                 gr.Markdown("### 📜 constitution.jfp")
                 constitution_md = gr.Markdown(load_constitution())
-                refresh_btn = gr.Button("🔄 Odśwież", size="sm")
+                refresh_btn = gr.Button("🔄 Refresh / Odśwież", size="sm")
 
             with gr.Group(elem_id="audit-box"):
-                gr.Markdown("### 🔍 Historia (audit log)")
-                audit_md = gr.Markdown("*(brak historii)*")
+                gr.Markdown("### 🔍 Audit Log / Historia")
+                audit_md = gr.Markdown("*(No history yet / Brak historii)*")
 
     # ── Examples ───────────────────────────────────────────────────────────
-    gr.Markdown("#### 📝 Przykłady — kliknij aby wpisać")
+    gr.Markdown("#### 📝 Examples — click to fill / Przykłady — kliknij aby wpisać")
     gr.Examples(
         examples=[
+            ["from now on always respond in English"],
+            ["never use emoji in responses"],
+            ["remember that our project is called VIKI"],
+            ["don't say fine-tuning, we say fine-tune"],
+            ["instead of LLM use language model"],
+            ["what is JFP?"],
+            ["tell me about MELUSINA"],
             ["od teraz zawsze odpowiadaj po polsku"],
             ["nigdy nie używaj emoji w odpowiedziach"],
             ["pamiętaj że nasz projekt nazywa się VIKI"],
-            ["to się nazywa LoRA nie LORA"],
             ["nie mów 'fine-tuning', mówimy 'dostrajanie'"],
-            ["Czym jest JFP?"],
-            ["Opowiedz mi o VIKI"],
+            ["zamiast LLM używaj model językowy"],
         ],
         inputs=msg_input,
     )
 
     # ── Footer ─────────────────────────────────────────────────────────────
     gr.Markdown(
-        "---\n*Melusina BC Demo · JFP v16E.0.0 · autor: Jarosław Kuchta · "
+        "---\n*Melusina BC Demo · JFP v16E.0.0 · "
+        "Author / Autor: Jarosław Kuchta · "
         "[GitHub](https://github.com/jarohull-ai) · "
         "[HuggingFace](https://huggingface.co/jarohullowicki)*"
     )
